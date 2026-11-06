@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0b0d12">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>ثغرة في الواقع | Reality Glitch</title>
+<style>
+:root{--bg:#0b0d12;--panel:#151922;--ink:#e8ecf4;--dim:#8b93a7;--acc:#27e0a3;--bad:#ff3b5c;--warn:#ffc83d;--ice:#8be0ff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"Segoe UI",Tahoma,Arial,sans-serif;overflow:hidden}
+#app{max-width:480px;height:100%;margin:0 auto;position:relative}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;padding:16px;overflow-y:auto;gap:10px}
+.screen.on{display:flex;animation:fi .25s}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+h1,h2,h3,p{margin:0}
+.logo{font-size:44px;font-weight:900;text-align:center;margin-top:2vh;animation:gl 2.6s infinite}
+.sub{text-align:center;color:var(--dim);font-size:14px;letter-spacing:2px;direction:ltr}
+.lead{text-align:center;color:var(--dim);font-size:14px;line-height:1.7;padding:0 8px}
+@keyframes gl{0%,88%,100%{text-shadow:none;transform:none}90%{text-shadow:3px 0 var(--bad),-3px 0 var(--acc);transform:translateX(3px)}93%{text-shadow:-4px 0 var(--bad),4px 0 var(--acc);transform:translateX(-3px)}96%{text-shadow:2px 0 var(--bad),-2px 0 var(--acc);transform:none}}
+.btn{background:var(--acc);color:#04130d;border:0;border-radius:12px;padding:13px 16px;font:700 16px "Segoe UI",Tahoma,Arial,sans-serif;cursor:pointer;width:100%}
+.btn:active{transform:scale(.98)}
+.btn.ghost{background:#1d2330;color:var(--ink);border:1px solid #2a3142}
+.btn.bad{background:var(--bad);color:#fff}
+.btn.sm{padding:8px 12px;font-size:14px;width:auto}
+.btn:disabled{opacity:.4}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.chips{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.chip{background:#1d2330;border:1px solid #2a3142;color:var(--ink);padding:8px 14px;border-radius:20px;font-size:14px;cursor:pointer}
+.chip.on{background:var(--acc);color:#04130d;border-color:var(--acc);font-weight:700}
+.card{background:var(--panel);border:1px solid #232a3a;border-radius:14px;padding:12px}
+.toprow{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.icon{background:#1d2330;border:1px solid #2a3142;color:var(--ink);border-radius:10px;width:40px;height:40px;font-size:18px;cursor:pointer}
+.coins{font-weight:700;color:var(--warn)}
+.xpbar{height:8px;background:#1d2330;border-radius:6px;overflow:hidden;margin-top:6px}
+.xpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--ice))}
+.topbar{display:flex;justify-content:space-between;align-items:center;font-size:14px;gap:8px}
+.topbar b{color:var(--acc)}
+.timer{height:10px;background:#1d2330;border-radius:6px;overflow:hidden}
+#bar{height:100%;width:100%;background:var(--acc)}
+.tt{font:700 13px monospace;color:var(--dim);direction:ltr;text-align:center;display:flex;justify-content:space-between}
+.stage{position:relative;width:100%;max-width:calc((100vh - 300px)*0.8333);max-width:calc((100dvh - 300px)*0.8333);margin:0 auto;aspect-ratio:5/6;overflow:hidden;border-radius:12px;border:2px solid #222a38;background:#000;touch-action:manipulation;transition:box-shadow .2s}
+.stage.frozen{box-shadow:0 0 0 3px var(--ice),inset 0 0 50px rgba(139,224,255,.55)}
+.stage svg{display:block;width:100%;height:auto}
+.f-night{filter:grayscale(1) sepia(1) hue-rotate(75deg) saturate(2.2)}
+.f-vhs{filter:contrast(1.15) saturate(1.4) sepia(.25)}
+.f-neon{filter:saturate(2) hue-rotate(-20deg) contrast(1.2)}
+.scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.2) 0 2px,transparent 2px 4px);box-shadow:inset 0 0 60px rgba(0,0,0,.65)}
+.hud{position:absolute;font:700 11px monospace;color:#ff6b7f;pointer-events:none;text-shadow:0 0 4px #000;direction:ltr}
+.tl{top:8px;left:10px}.tr{top:8px;right:10px;color:#cfd6e6}
+#bars{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#bars div{position:absolute;left:0;right:0;background:rgba(255,255,255,.12);mix-blend-mode:screen}
+#flash{position:absolute;inset:0;background:var(--bad);opacity:0;pointer-events:none}
+#flash.on{animation:fl .3s}
+@keyframes fl{0%{opacity:.45}100%{opacity:0}}
+#pen{position:absolute;top:40%;left:0;right:0;text-align:center;font:900 40px monospace;color:var(--bad);opacity:0;pointer-events:none;text-shadow:0 0 10px #000}
+#pen.on{animation:pn .7s}
+@keyframes pn{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-40px)}}
+#hint{text-align:center;color:var(--dim);font-size:14px;min-height:20px}
+#stat{text-align:center;font-size:13px;color:var(--warn);min-height:18px}
+.pus{display:flex;gap:8px}
+.pu{flex:1;background:#1d2330;border:1px solid #2a3142;color:var(--ink);border-radius:10px;padding:8px 4px;font:600 13px "Segoe UI",Tahoma,Arial,sans-serif;cursor:pointer}
+.pu:active{transform:scale(.97)}
+.pu b{color:var(--warn)}
+#panel{display:none;flex-direction:column;gap:8px;text-align:center}
+#panel h2{font-size:22px}
+#panel p{color:var(--dim);font-size:14px;line-height:1.6}
+.stars{font-size:26px;color:var(--warn);letter-spacing:4px}
+.list{display:flex;flex-direction:column;gap:6px;font-size:14px}
+.list>div{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#10141c;padding:8px 10px;border-radius:8px}
+.list small{color:var(--dim);display:block}
+.lvgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.lv{background:#1d2330;border:1px solid #2a3142;color:var(--ink);border-radius:12px;padding:10px 0;font:700 16px "Segoe UI",Tahoma,Arial,sans-serif;cursor:pointer;line-height:1.3}
+.lv small{display:block;color:var(--warn);font-size:12px;min-height:15px}
+.lv.boss{border-color:var(--bad)}
+.lv.lock{opacity:.35;cursor:default}
+.ach.on{border:1px solid var(--acc)}
+.ach.off{opacity:.55}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#222a38;color:#fff;padding:10px 16px;border-radius:20px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9;max-width:90%;text-align:center}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- القائمة الرئيسية -->
+  <section class="screen on" id="menu">
+    <div class="toprow">
+      <div style="display:flex;gap:6px"><button class="icon" id="bSnd" onclick="toggleOpt('sound')" aria-label="الصوت">🔊</button><button class="icon" id="bVib" onclick="toggleOpt('vib')" aria-label="الاهتزاز">📳</button></div>
+      <span class="coins" id="coinsM">🪙 0</span>
+    </div>
+    <h1 class="logo">ثغرة في الواقع</h1>
+    <div class="sub">REALITY GLITCH</div>
+    <div class="card" id="profLine"></div>
+    <button class="btn" onclick="openCampaign()">🗺 الحملة (4 مواسم × 20 مرحلة)</button>
+    <div class="row"><button class="btn ghost" onclick="startEndless()">♾ لا نهائي</button><button class="btn ghost" id="dailyBtn" onclick="startDaily()">📅 اليومي</button></div>
+    <div class="row"><button class="btn ghost" onclick="startMain()">⚡ اختبار سريع</button><button class="btn ghost" onclick="openDuelMake()">⚔️ تحدّي صديق</button></div>
+    <div class="chips" id="themeChips"></div>
+    <div class="row"><button class="btn ghost" onclick="show('shop')">🛒 المتجر</button><button class="btn ghost" onclick="show('profile')">🏆 الإنجازات</button><button class="btn ghost" onclick="show('how')">❓</button></div>
+    <p class="lead" id="bestLine"></p>
+  </section>
+
+  <!-- كيف تلعب -->
+  <section class="screen" id="how">
+    <h2>كيف تلعب؟</h2>
+    <div class="card lead" style="text-align:right;color:var(--ink)">
+      • في كل مرحلة ثغرة (أو أكثر): ظل معكوس، عنصر اختفى، انعكاس خاطئ، لون مختلف، وجه شاذ، فرق بين لوحتين، أو وميض سريع.<br>
+      • اضغط على الثغرة قبل نفاد الوقت. الضغط الخاطئ يخصم ثانية ويكسر سلسلتك 🔥.<br>
+      • كلما اقترب الوقت من النهاية زاد التشويش.<br>
+      • 👾 كل 5 مراحل يظهر زعيم بثغرات متعددة.<br>
+      • الأدوات: ⏱ وقت إضافي، 🔍 تلميح، ❄️ تجميد الوقت.<br>
+      • اجمع العملات 🪙 والخبرة، وافتح الإنجازات والفلاتر من المتجر.<br>
+      • شارك كارت التحدي، أو صمّم ثغرتك وتحدَّ أصدقاءك.
+    </div>
+    <button class="btn" onclick="show('menu')">فهمت، لنبدأ</button>
+  </section>
+
+  <!-- اللعب -->
+  <section class="screen" id="game">
+    <div class="topbar"><span id="lvlTitle"></span><span>النقاط: <b id="score">0</b></span></div>
+    <div class="timer"><div id="bar"></div></div>
+    <div class="tt"><span id="timeTxt">--</span><span id="stat"></span></div>
+    <div class="stage" id="stage">
+      <div id="sceneBox"></div>
+      <div id="bars"></div>
+      <div class="scan"></div>
+      <div class="hud tl">● REC &nbsp;CAM-0<span id="cam">1</span></div>
+      <div class="hud tr" id="clk">00:00:00</div>
+      <div id="flash"></div>
+      <div id="pen">-1s</div>
+    </div>
+    <div class="pus" id="pus">
+      <button class="pu" onclick="usePU('time')">⏱ +3ث <b id="pTime">0</b></button>
+      <button class="pu" onclick="usePU('hint')">🔍 تلميح <b id="pHint">0</b></button>
+      <button class="pu" onclick="usePU('freeze')">❄️ تجميد <b id="pFreeze">0</b></button>
+    </div>
+    <div id="hint"></div>
+    <div id="panel"></div>
+  </section>
+
+  <!-- النتيجة -->
+  <section class="screen" id="finish">
+    <h2 style="text-align:center" id="finTitle">اكتملت الاختبارات 🎉</h2>
+    <div class="card" style="text-align:center"><div class="lead">مجموع نقاطك</div><div class="logo" style="margin:0;font-size:52px;animation:none" id="finScore">0</div><div class="lead" id="finSub"></div></div>
+    <div class="list" id="finList"></div>
+    <button class="btn" onclick="shareCard()">📤 شارك كارت التحدي</button>
+    <button class="btn ghost" onclick="openDuelMake()">⚔️ صمّم ثغرتك وتحدَّ صديقك</button>
+    <div class="row"><button class="btn ghost" onclick="replay()">إعادة</button><button class="btn ghost" onclick="show('menu')">القائمة</button></div>
+  </section>
+
+  <!-- خريطة الحملة -->
+  <section class="screen" id="campaign">
+    <h2 style="text-align:center">الحملة</h2>
+    <div class="chips" id="worldChips"></div>
+    <p class="lead" id="worldInfo"></p>
+    <div class="lvgrid" id="lvGrid"></div>
+    <button class="btn ghost" onclick="show('menu')">رجوع</button>
+  </section>
+
+  <!-- المتجر -->
+  <section class="screen" id="shop">
+    <div class="toprow"><h2>🛒 المتجر</h2><span class="coins" id="coinsS"></span></div>
+    <div class="list" id="shopList"></div>
+    <button class="btn ghost" onclick="show('menu')">رجوع</button>
+  </section>
+
+  <!-- الملف الشخصي والإنجازات -->
+  <section class="screen" id="profile">
+    <h2>🏆 ملفي</h2>
+    <div class="card" id="profCard"></div>
+    <h3>الإنجازات</h3>
+    <div class="list" id="achList"></div>
+    <button class="btn ghost" onclick="show('menu')">رجوع</button>
+  </section>
+
+  <!-- تصميم تحدّي ثنائي -->
+  <section class="screen" id="duelMake">
+    <h2 style="text-align:center">صمّم ثغرتك</h2>
+    <p class="lead">اضغط على العنصر الذي تريد أن ينقلب ظلّه، ثم أرسل الرابط لصديقك. أمامه 6 ثوانٍ فقط!</p>
+    <div class="stage"><div id="sceneBoxD"></div><div class="scan"></div></div>
+    <div class="row"><button class="btn ghost" onclick="rerollDuel()">🔀 غيّر المشهد</button><button class="btn" id="duelLink" onclick="shareDuel()" disabled>🔗 أرسل التحدي</button></div>
+    <button class="btn ghost" onclick="show('menu')">رجوع</button>
+  </section>
+
+  <!-- استقبال تحدٍّ -->
+  <section class="screen" id="duelIntro">
+    <h1 class="logo" style="font-size:34px">⚔️ صديقك تحدّاك!</h1>
+    <p class="lead">صمّم لك ثغرة خاصة. أمامك 6 ثوانٍ لتكتشفها. هل عقلك أسرع من خدعته؟</p>
+    <button class="btn" onclick="startDuel()">قبلت التحدي</button>
+    <button class="btn ghost" onclick="show('menu')">القائمة</button>
+  </section>
+</div>
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* =========================================================
+   ثغرة في الواقع (Reality Glitch) — النسخة الموسّعة v2
+   ========================================================= */
+const $=s=>document.querySelector(s);
+const f=n=>Math.round(n*10)/10;
+const today=()=>new Date().toLocaleDateString('en-CA');
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+
+/* ---------- ثيمات ومواسم (LiveOps: يمكن استبدال WORLDS من ملف seasons.json) ---------- */
+const THEMES={
+  home:  {name:'المنزل', bg:['#3a2f4a','#1d1a26'],floor:'#2a2233',icons:['chair','lamp','plant','box'],   pal:[['#c98b5a','#e8c39a','#ffd27a'],['#7aa2c9','#a9c7e8','#ffd27a'],['#c97a8b','#e8a9b6','#ffd27a']]},
+  street:{name:'الشارع', bg:['#27384f','#141b26'],floor:'#222a35',icons:['lamp','tree','box','plant'],    pal:[['#8a97a8','#c3cddb','#ffe08a'],['#a07a5a','#d1ac8a','#ffe08a'],['#6f8fa8','#a5c1d6','#ffe08a']]},
+  office:{name:'المكتب', bg:['#2e3b3a','#151c1c'],floor:'#222b2b',icons:['monitor','chair','plant','box'], pal:[['#6f8f8a','#a8cdc6','#8be0ff'],['#8a8f6f','#c6cba0','#8be0ff'],['#7a7f9a','#b0b5d1','#8be0ff']]},
+  space: {name:'الفضاء', bg:['#1b1440','#07050f'],floor:'#16102b',icons:['rocket','planet','lamp','box'],  pal:[['#a98bff','#d6c6ff','#ffd27a'],['#ff8bb0','#ffc6d9','#8be0ff'],['#6fd3ff','#b8ecff','#ffd27a']]}
+};
+let WORLDS=[
+  {id:'s1',name:'الموسم 1 — المنزل',theme:'home'},
+  {id:'s2',name:'الموسم 2 — الشارع',theme:'street'},
+  {id:'s3',name:'الموسم 3 — المكتب',theme:'office'},
+  {id:'s4',name:'الموسم 4 — الفضاء',theme:'space'}
+];
+const THEME_KEYS=Object.keys(THEMES);
+
+/* ---------- أنواع المراحل ---------- */
+const ALL_TYPES=['shadow','mirror','memory','grid','color','clock','diff','flicker'];
+const TITLES={shadow:'الفخ البصري',mirror:'مرآة خادعة',memory:'اختفاء الذاكرة',grid:'وجه مختلف',color:'لون مختلف',clock:'الوهم المنطقي',diff:'لوحتان وفرق',flicker:'وميض الثغرة',boss:'👾 زعيم الثغرات'};
+
+/* المراحل الخمس الأساسية (MVP) حسب الوثيقة */
+const MAIN_LEVELS=[
+  {title:'الفخ البصري السريع',        time:10,type:'shadow',n:5,anoms:{flip:1}},
+  {title:'اختفاء الذاكرة اللحظية',    time:8, type:'memory',n:5,show:3500},
+  {title:'الوهم المنطقي الخفي',       time:7, type:'clock'},
+  {title:'التشويش والضغط النفسي',     time:6, type:'grid',wobble:true},
+  {title:'الاختبار النهائي: عقل ضد وهم',time:5,type:'shadow',n:7,anoms:{flip:1,up:1},wobble:true,noise:true,boss:true}
+];
+
+const TMULT={shadow:1,mirror:1,memory:.9,grid:.9,color:.95,clock:.85,diff:1.3,flicker:1.1,boss:.9};
+function makeLevel(type,d,w){
+  w=w||0;
+  let time=(10-d*0.27-w*0.6)*(TMULT[type]||1);
+  const L={type,title:TITLES[type],d};
+  const base=(type==='boss')?'shadow':type;
+  if(base==='shadow'||base==='memory'||base==='flicker')L.n=5+(d>=8?1:0)+(d>=14?1:0);
+  if(type==='shadow')L.anoms={flip:1};
+  if(type==='memory'){L.show=Math.max(2200,3600-d*70);}
+  if(type==='mirror')L.n=4+(d>=10?1:0);
+  if(type==='diff')L.n=5+(d>=12?1:0);
+  if(type==='color')L.cdiff=Math.max(4,16-d*0.5);
+  if(d>=10&&(type==='shadow'||type==='grid'||type==='color'))L.wobble=true;
+  if(d>=14&&type==='shadow')L.noise=true;
+  if(type==='boss'){
+    L.boss=true;L.type='boss';L.n=w<2?7:8;L.anoms={flip:w<2?1:2,up:1};L.wobble=true;L.noise=true;
+    time=Math.max(5,time)+(w>=2?1:0);
+  }
+  if(type==='flicker')time=Math.max(5,time);
+  if(type==='diff')time=Math.max(6,time);
+  L.time=Math.round(Math.max(3.5,Math.min(12,time))*2)/2;
+  return L;
+}
+function campaignLevel(wi,i){
+  const w=WORLDS[wi],boss=(i+1)%5===0;
+  const type=boss?'boss':ALL_TYPES[(i+wi*3)%ALL_TYPES.length];
+  const L=makeLevel(type,i,wi);
+  L.seed=(hashStr(w.id)+i*977)|0;L.title=(i+1)+'. '+TITLES[type];L.theme=w.theme;
+  return L;
+}
+function dailyPack(){
+  const ds=today(),rng=mulberry32(hashStr('daily'+ds)),th=THEME_KEYS[Math.floor(rng()*THEME_KEYS.length)],out=[];
+  for(let i=0;i<5;i++){
+    const type=i===4?'boss':ALL_TYPES[Math.floor(rng()*ALL_TYPES.length)],L=makeLevel(type,6+i*2,1);
+    L.seed=(hashStr(ds)+i*131)|0;L.title=(i+1)+'. '+TITLES[type];L.theme=th;out.push(L);
+  }
+  return {levels:out,theme:th};
+}
+function endlessLevel(k,th0){
+  const type=(k+1)%10===0?'boss':pick(ALL_TYPES),L=makeLevel(type,Math.min(k*0.9,30),Math.min(3,Math.floor(k/8)));
+  L.title=(k+1)+'. '+TITLES[type];L.theme=THEME_KEYS[(Math.floor(k/4)+th0)%THEME_KEYS.length];
+  return L;
+}
+
+const FAIL_MSGS=['عقلك الباطن كان مشغولاً بتفاصيل أخرى!','الثغرة كانت أمام عينيك... وعقلك قرر تجاهلها!','عقلك أكمل الصورة بدل أن يراها!','انتهى الوقت! الواقع خدعك هذه المرة.','دماغك اختار الراحة بدل الملاحظة!'];
+const WIN_MSGS=['عين صقر! كسرت النمط 👁️','عقلك لم يصدّق الخدعة!','ملاحظة رهيبة!','الواقع ارتبك أمامك!'];
+
+/* ---------- أيقونات العناصر (القاعدة عند y=0 والارتفاع للأعلى) ---------- */
+const ICONS={
+  lamp:p=>({w:34,h:96,svg:`<rect x="-3" y="-84" width="6" height="84" fill="${p[0]}"/><rect x="-15" y="-5" width="30" height="5" rx="2" fill="${p[0]}"/><circle cx="0" cy="-88" r="14" fill="${p[2]}"/>`}),
+  tree:p=>({w:56,h:92,svg:`<rect x="-5" y="-34" width="10" height="34" fill="#7a5a3a"/><circle cx="0" cy="-62" r="28" fill="#3f9d6a"/><circle cx="-16" cy="-48" r="18" fill="#4fb57a"/><circle cx="16" cy="-48" r="18" fill="#4fb57a"/>`}),
+  box:p=>({w:48,h:50,svg:`<rect x="-24" y="-50" width="48" height="50" fill="${p[0]}"/><rect x="-24" y="-50" width="48" height="10" fill="${p[1]}"/><rect x="-3" y="-50" width="6" height="50" fill="${p[2]}"/>`}),
+  plant:p=>({w:40,h:70,svg:`<polygon points="-15,-26 15,-26 11,0 -11,0" fill="${p[0]}"/><ellipse cx="-10" cy="-44" rx="8" ry="20" fill="#3f9d6a" transform="rotate(-25 -10 -44)"/><ellipse cx="10" cy="-44" rx="8" ry="20" fill="#4fb57a" transform="rotate(25 10 -44)"/><ellipse cx="0" cy="-50" rx="8" ry="22" fill="#3f9d6a"/>`}),
+  monitor:p=>({w:60,h:64,svg:`<rect x="-30" y="-64" width="60" height="42" rx="4" fill="${p[0]}"/><rect x="-26" y="-60" width="52" height="34" fill="${p[1]}"/><rect x="-4" y="-22" width="8" height="18" fill="${p[0]}"/><rect x="-18" y="-5" width="36" height="5" fill="${p[0]}"/>`}),
+  rocket:p=>({w:36,h:96,svg:`<ellipse cx="0" cy="-52" rx="15" ry="42" fill="${p[1]}"/><polygon points="-15,-30 -30,0 -12,-8" fill="${p[0]}"/><polygon points="15,-30 30,0 12,-8" fill="${p[0]}"/><circle cx="0" cy="-60" r="7" fill="${p[2]}"/>`}),
+  chair:p=>({w:46,h:70,svg:`<rect x="-22" y="-34" width="44" height="8" fill="${p[0]}"/><rect x="-22" y="-70" width="7" height="40" fill="${p[0]}"/><rect x="-20" y="-26" width="5" height="26" fill="${p[1]}"/><rect x="15" y="-26" width="5" height="26" fill="${p[1]}"/>`}),
+  planet:p=>({w:60,h:70,svg:`<circle cx="0" cy="-35" r="26" fill="${p[0]}"/><ellipse cx="0" cy="-35" rx="34" ry="8" fill="none" stroke="${p[2]}" stroke-width="4"/>`})
+};
+const NOPAL=['tree'];  // أيقونات لا تتأثر بتغيّر اللون
+
+/* ---------- عناصر وتخطيط ---------- */
+function makeItem(name,pal,x,y,s){const ic=ICONS[name](pal);return{name,pal,x,y,s,w:ic.w*s,h:ic.h*s,ih:ic.h,svg:ic.svg};}
+function layout(n,rng,T,o){
+  o=o||{};
+  const rows=o.rows||(n>5?2:1),per=Math.ceil(n/rows),ys=o.ys||(rows===1?[405]:[335,440]),s=o.s||(rows===1?1:.82),items=[];
+  for(let i=0;i<n;i++){
+    const r=Math.floor(i/per),c=i%per,cnt=Math.min(per,n-r*per),step=320/per;
+    const name=T.icons[Math.floor(rng()*T.icons.length)],pal=T.pal[Math.floor(rng()*T.pal.length)];
+    const x=40+(c+.5)*step+(per-cnt)*step/2+(rng()-.5)*10;
+    items.push(makeItem(name,pal,x,ys[r],s));
+  }
+  return{items,rows};
+}
+function floorSvg(T,rows){
+  const y=rows===1?392:318;
+  return `<rect y="${y}" width="400" height="${480-y}" fill="${T.floor}"/><line x1="0" x2="400" y1="${y}" y2="${y}" stroke="#fff" stroke-opacity=".1"/>`;
+}
+function bodies(its){return its.map(it=>`<g transform="translate(${f(it.x)} ${it.y}) scale(${it.s})">${it.svg}</g>`).join('');}
+function drawItems(items,o){
+  let sh='',bd='',tg=[];
+  items.forEach((it,i)=>{
+    if(o.hide===i){tg.push({x:it.x-it.w/2-12,y:it.y-it.h-10,w:it.w+24,h:it.h+22});return;}
+    const flip=o.flips.includes(i),up=o.ups.includes(i),dir=flip?-1:1,L=it.h*0.5;
+    sh+=`<polygon points="${f(it.x-it.w/2)},${it.y} ${f(it.x+it.w/2)},${it.y} ${f(it.x+it.w/2+dir*L)},${it.y+14} ${f(it.x-it.w/2+dir*L)},${it.y+14}" fill="#000" opacity=".38"/>`;
+    const tr=up?`translate(${f(it.x)} ${it.y}) scale(${it.s}) translate(0 ${-it.ih/2}) scale(1 -1) translate(0 ${it.ih/2})`:`translate(${f(it.x)} ${it.y}) scale(${it.s})`;
+    bd+=`<g transform="${tr}">${it.svg}</g>`;
+    if(flip)tg.push({x:it.x-it.w/2-L-6,y:it.y-it.h-4,w:it.w+L+12,h:it.h+22});
+    if(up)tg.push({x:it.x-it.w/2-6,y:it.y-it.h-6,w:it.w+12,h:it.h+12});
+  });
+  return{svg:sh+bd,targets:tg};
+}
+const hitRect=it=>({x:it.x-it.w/2-8,y:it.y-it.h-8,w:it.w+16,h:it.h+16});
+function unionRect(a,b){if(!b)return a;const x1=Math.min(a.x,b.x),y1=Math.min(a.y,b.y),x2=Math.max(a.x+a.w,b.x+b.w),y2=Math.max(a.y+a.h,b.y+b.h);return{x:x1,y:y1,w:x2-x1,h:y2-y1};}
+/* تعديل عنصر لصنع "الاختلاف": لون / شكل / إزاحة / اختفاء */
+function modItem(it,rng,T,allowHide){
+  const kinds=allowHide?['pal','icon','shift','hide']:['pal','icon','shift'];
+  let k=kinds[Math.floor(rng()*kinds.length)];
+  if(k==='pal'&&NOPAL.includes(it.name))k='icon';
+  if(k==='hide')return null;
+  if(k==='pal'){const o=T.pal.filter(p=>p!==it.pal);return makeItem(it.name,o[Math.floor(rng()*o.length)],it.x,it.y,it.s);}
+  if(k==='icon'){const names=Object.keys(ICONS).filter(n=>n!==it.name);return makeItem(names[Math.floor(rng()*names.length)],it.pal,it.x,it.y,it.s);}
+  return makeItem(it.name,it.pal,it.x+(rng()<.5?-1:1)*18,it.y,it.s);
+}
+function noiseSvg(rng){
+  let s='';
+  for(let i=0;i<9;i++){s+=`<rect x="${f(rng()*360)}" y="${f(rng()*440)}" width="${f(20+rng()*60)}" height="${f(3+rng()*9)}" fill="#ff3b5c" opacity=".22"/>`;}
+  return s;
+}
+
+/* ---------- مشاهد خاصة ---------- */
+function clockScene(rng){
+  const cx=200,cy=235,R=140;let s=`<circle cx="${cx}" cy="${cy}" r="${R+10}" fill="#222"/><circle cx="${cx}" cy="${cy}" r="${R}" fill="#f4efe6"/>`;
+  for(let i=0;i<60;i++){const a=i/60*Math.PI*2,r1=R-(i%5?6:12),r2=R-2;s+=`<line x1="${f(cx+Math.cos(a)*r1)}" y1="${f(cy+Math.sin(a)*r1)}" x2="${f(cx+Math.cos(a)*r2)}" y2="${f(cy+Math.sin(a)*r2)}" stroke="#555" stroke-width="${i%5?1:2}"/>`;}
+  const mirrorable=[2,3,4,5,7,9],kind=rng()<.5?'dup':'mirror';
+  const k=kind==='mirror'?mirrorable[Math.floor(rng()*mirrorable.length)]:1+Math.floor(rng()*12);
+  let tg=null;
+  for(let n=1;n<=12;n++){
+    const a=n/12*Math.PI*2-Math.PI/2,x=cx+Math.cos(a)*105,y=cy+Math.sin(a)*105;
+    let shown=n,tr='';
+    if(n===k){if(kind==='dup')shown=(n%12)+1;else tr=` transform="translate(${f(x)} ${f(y)}) scale(-1 1) translate(${-f(x)} ${-f(y)})"`;tg={x:x-26,y:y-26,w:52,h:52};}
+    s+=`<text x="${f(x)}" y="${f(y+9)}" font-size="28" font-weight="700" text-anchor="middle" font-family="Arial" fill="#222"${tr}>${shown}</text>`;
+  }
+  s+=`<line x1="${cx}" y1="${cy}" x2="${f(cx+Math.cos(-2.1)*60)}" y2="${f(cy+Math.sin(-2.1)*60)}" stroke="#222" stroke-width="7" stroke-linecap="round"/><line x1="${cx}" y1="${cy}" x2="${f(cx+Math.cos(-0.5)*95)}" y2="${f(cy+Math.sin(-0.5)*95)}" stroke="#222" stroke-width="4" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="7" fill="#ff3b5c"/>`;
+  return{inner:s,targets:[tg]};
+}
+function gridScene(rng,T){
+  const cols=4,rows=5,odd=Math.floor(rng()*cols*rows),kind=Math.floor(rng()*3),col=T.pal[Math.floor(rng()*T.pal.length)][1];
+  let s='',tg=[];
+  for(let i=0;i<cols*rows;i++){
+    const cx=65+(i%cols)*90,cy=92+Math.floor(i/cols)*86,o=i===odd;
+    s+=`<circle cx="${cx}" cy="${cy}" r="31" fill="${col}"/><circle cx="${cx-11}" cy="${cy-7}" r="4.5" fill="#222"/>`;
+    if(!(o&&kind===0))s+=`<circle cx="${cx+11}" cy="${cy-7+(o&&kind===2?7:0)}" r="4.5" fill="#222"/>`;
+    const m=(o&&kind===1)?`M${cx-11} ${cy+16} Q${cx} ${cy+6} ${cx+11} ${cy+16}`:`M${cx-11} ${cy+8} Q${cx} ${cy+19} ${cx+11} ${cy+8}`;
+    s+=`<path d="${m}" fill="none" stroke="#222" stroke-width="3" stroke-linecap="round"/>`;
+    if(o)tg.push({x:cx-40,y:cy-40,w:80,h:80});
+  }
+  return{inner:s,targets:tg};
+}
+function colorScene(L,rng){
+  const cols=5,rows=6,odd=Math.floor(rng()*cols*rows),h=Math.floor(rng()*360),sat=55+Math.floor(rng()*20),dl=(rng()<.5?-1:1)*(L.cdiff||12);
+  let s='',tg=[];
+  for(let i=0;i<cols*rows;i++){
+    const x=12+(i%cols)*76,y=14+Math.floor(i/cols)*76,o=i===odd,l=o?52+dl:52;
+    s+=`<rect x="${x}" y="${y}" width="68" height="68" rx="12" fill="hsl(${h},${sat}%,${l}%)"/>`;
+    if(o)tg.push({x:x-3,y:y-3,w:74,h:74});
+  }
+  return{inner:s,targets:tg};
+}
+function mirrorScene(L,rng,T){
+  const BASE=255,YW=267,SUM=2*YW,n=L.n||4,lay=layout(n,rng,T,{rows:1,ys:[BASE],s:1}),items=lay.items,k=Math.floor(rng()*n),orig=items[k],m=modItem(orig,rng,T,true);
+  const refl=items.slice();if(m)refl[k]=m;else refl.splice(k,1);
+  const up=unionRect(hitRect(orig),m?hitRect(m):null);
+  const tg=[{x:up.x,y:SUM-(up.y+up.h),w:up.w,h:up.h}];
+  let s=`<rect x="40" y="36" width="320" height="110" rx="8" fill="#fff" opacity=".04"/><rect y="${BASE}" width="400" height="12" fill="${T.floor}"/><rect y="${YW}" width="400" height="${480-YW}" fill="#0c2f45"/>`;
+  s+=`<g transform="translate(0 ${SUM}) scale(1 -1)" opacity=".55">${bodies(refl)}</g>`;
+  s+=`<rect y="${YW}" width="400" height="${480-YW}" fill="#1b5f86" opacity=".28"/>`;
+  for(let i=0;i<6;i++)s+=`<line x1="0" x2="400" y1="${280+i*32}" y2="${280+i*32}" stroke="#fff" stroke-opacity=".06"/>`;
+  s+=`<line x1="0" x2="400" y1="${YW}" y2="${YW}" stroke="#8be0ff" stroke-opacity=".55" stroke-width="2"/>`+bodies(items);
+  return{inner:s,targets:tg};
+}
+function diffScene(L,rng,T){
+  const n=Math.min(L.n||5,6),lay=layout(n,rng,T,{rows:1,ys:[185],s:.85}),items=lay.items,k=Math.floor(rng()*n),orig=items[k],m=modItem(orig,rng,T,true);
+  const itemsB=items.slice();if(m)itemsB[k]=m;else itemsB.splice(k,1);
+  const panel=its=>`<rect y="195" width="400" height="40" fill="${T.floor}"/>`+drawItems(its,{flips:[],ups:[],hide:-1}).svg;
+  const up=unionRect(hitRect(orig),m?hitRect(m):null);
+  const inner=`<rect width="400" height="236" fill="#fff" opacity=".03"/>`+panel(items)+`<rect y="236" width="400" height="8" fill="#000" opacity=".55"/><g transform="translate(0 245)">${panel(itemsB)}</g>`;
+  return{inner,targets:[{x:up.x,y:up.y+245,w:up.w,h:up.h}]};
+}
+
+function buildScene(L,T,rng){
+  const B={wobble:!!L.wobble,items:null,showInner:null,flicker:null,targets:[]};
+  const t=L.type==='boss'?'shadow':L.type;
+  if(t==='shadow'||t==='memory'||t==='flicker'){
+    const lay=layout(L.n||5,rng,T),items=lay.items,floor=floorSvg(T,lay.rows),idx=items.map((_,i)=>i);
+    const take=()=>idx.splice(Math.floor(rng()*idx.length),1)[0];
+    B.items=items;
+    if(t==='memory'){
+      const k=take();
+      B.showInner=floor+drawItems(items,{flips:[],ups:[],hide:-1}).svg;
+      const d=drawItems(items,{flips:[],ups:[],hide:k});
+      B.inner=floor+d.svg;B.targets=d.targets;B.hint='اختفى عنصر من المشهد... أين كان؟';
+    }else if(t==='flicker'){
+      const k=take(),d=drawItems(items,{flips:[],ups:[],hide:-1});
+      B.inner=floor+d.svg;B.targets=[hitRect(items[k])];B.flicker={rect:hitRect(items[k])};B.hint='راقب المشهد... شيء ما سيومض لحظة!';
+    }else{
+      let flips=[],ups=[];
+      if(L.flipIdx!=null){flips=[L.flipIdx];const j=idx.indexOf(L.flipIdx);if(j>=0)idx.splice(j,1);}
+      else for(let c=0;c<((L.anoms&&L.anoms.flip)||0);c++)flips.push(take());
+      for(let c=0;c<((L.anoms&&L.anoms.up)||0);c++)ups.push(take());
+      const d=drawItems(items,{flips,ups,hide:-1});
+      B.inner=floor+d.svg+(L.noise?noiseSvg(rng):'');B.targets=d.targets;
+      B.hint=(flips.length+ups.length)>1?`${flips.length+ups.length} ثغرات! اكتشفها كلها قبل أن ينتهي الوقت`:'ظلّ واحد لا يتبع الضوء...';
+    }
+  }else if(t==='clock'){const c=clockScene(rng);B.inner=c.inner;B.targets=c.targets;B.hint='رقم واحد ليس في مكانه الصحيح';}
+  else if(t==='grid'){const g=gridScene(rng,T);B.inner=g.inner;B.targets=g.targets;B.hint='وجه واحد مختلف عن الباقين';}
+  else if(t==='color'){const c=colorScene(L,rng);B.inner=c.inner;B.targets=c.targets;B.hint='مربع واحد بلون مختلف قليلًا';}
+  else if(t==='mirror'){const m=mirrorScene(L,rng,T);B.inner=m.inner;B.targets=m.targets;B.hint='الانعكاس فيه تفصيلة خاطئة';}
+  else if(t==='diff'){const d=diffScene(L,rng,T);B.inner=d.inner;B.targets=d.targets;B.hint='اللوحتان مختلفتان في تفصيلة واحدة (اضغط على اللوحة السفلى)';}
+  else throw new Error('unknown level type '+L.type);
+  return B;
+}
+function compose(T,inner,o){
+  o=o||{};
+  const size=o.size?` width="${o.size[0]}" height="${o.size[1]}"`:'';
+  const filt=o.wobble?`<filter id="wob" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.01 0.02" numOctaves="2" seed="3" result="n"><animate attributeName="baseFrequency" dur="2.4s" values="0.01 0.02;0.02 0.035;0.01 0.02" repeatCount="indefinite"/></feTurbulence><feDisplacementMap in="SourceGraphic" in2="n" scale="7" xChannelSelector="R" yChannelSelector="G"/></filter>`:'';
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 480"${size}><defs><linearGradient id="bgG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${T.bg[0]}"/><stop offset="1" stop-color="${T.bg[1]}"/></linearGradient>${filt}</defs><rect width="400" height="480" fill="url(#bgG)"/><g${o.wobble?' filter="url(#wob)"':''}>${inner}</g><g class="marks"></g></svg>`;
+}
+function svgPoint(svg,e){const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;return pt.matrixTransform(svg.getScreenCTM().inverse());}
+const inRect=(p,t)=>p.x>=t.x&&p.x<=t.x+t.w&&p.y>=t.y&&p.y<=t.y+t.h;
+
+/* =========================================================
+   الحفظ والتقدم والاقتصاد والإنجازات
+   ========================================================= */
+const DEF=()=>({best:{},coins:60,xp:0,inv:{time:2,hint:2,freeze:1},camp:{},daily:{last:'',streak:0},ach:{},
+  stats:{wins:0,perfect:0,fastest:99,bosses:0,shares:0,types:{},stars3:0,maxCombo:0,endlessBest:0},
+  opts:{sound:true,vib:true},cosm:{owned:['none'],active:'none'},seenHow:false,lastLogin:''});
+function loadSave(){
+  let s={};try{s=JSON.parse(localStorage.getItem('rg_save2'))||{};}catch(e){}
+  const d=DEF();
+  for(const k in d){
+    if(s[k]===undefined||s[k]===null)s[k]=d[k];
+    else if(typeof d[k]==='object'&&!Array.isArray(d[k]))s[k]=Object.assign({},d[k],s[k]);
+  }
+  return s;
+}
+const SAVE=loadSave();
+function store(){try{localStorage.setItem('rg_save2',JSON.stringify(SAVE));}catch(e){}}
+const plevel=xp=>Math.floor(Math.sqrt(xp/40))+1;
+function addCoins(c){SAVE.coins+=c;}
+function addXP(n){
+  const before=plevel(SAVE.xp);SAVE.xp+=n;const after=plevel(SAVE.xp);
+  if(after>before){addCoins(25*(after-before));toast('⬆ ارتفع مستواك إلى '+after+' (+'+25*(after-before)+' 🪙)');}
+}
+const campStars=wi=>(SAVE.camp[WORLDS[wi].id]||[]).reduce((a,b)=>a+(b||0),0);
+const campCleared=wi=>(SAVE.camp[WORLDS[wi].id]||[]).filter(x=>x>0).length;
+const totalStars=()=>WORLDS.reduce((a,_,i)=>a+campStars(i),0);
+const ACH=[
+  {id:'first',name:'أول ثغرة',desc:'اكتشف أول ثغرة',r:10,ok:()=>SAVE.stats.wins>=1},
+  {id:'w25',name:'عين الصقر',desc:'اكتشف 25 ثغرة',r:25,ok:()=>SAVE.stats.wins>=25},
+  {id:'w100',name:'صائد الثغرات',desc:'اكتشف 100 ثغرة',r:60,ok:()=>SAVE.stats.wins>=100},
+  {id:'fast',name:'أسرع من الضوء',desc:'اكتشف ثغرة في أقل من ثانيتين',r:30,ok:()=>SAVE.stats.fastest<2},
+  {id:'combo5',name:'سلسلة نارية',desc:'5 مراحل متتالية بلا أخطاء',r:40,ok:()=>SAVE.stats.maxCombo>=5},
+  {id:'boss',name:'قاهر الزعماء',desc:'اهزم أول زعيم',r:40,ok:()=>SAVE.stats.bosses>=1},
+  {id:'types',name:'متعدد المواهب',desc:'اكتشف ثغرة من كل نوع',r:50,ok:()=>ALL_TYPES.every(t=>SAVE.stats.types[t])},
+  {id:'stars30',name:'جامع النجوم',desc:'اجمع 30 نجمة في الحملة',r:50,ok:()=>totalStars()>=30},
+  {id:'daily3',name:'مواظب',desc:'3 أيام متتالية في التحدي اليومي',r:50,ok:()=>SAVE.daily.streak>=3},
+  {id:'endless',name:'لا نهاية',desc:'أنجز 15 مرحلة في الوضع اللانهائي',r:60,ok:()=>SAVE.stats.endlessBest>=15},
+  {id:'share',name:'ناشر الفوضى',desc:'شارك كارت تحدي',r:20,ok:()=>SAVE.stats.shares>=1},
+  {id:'world1',name:'سيد المنزل',desc:'أنهِ كل مراحل الموسم الأول',r:100,ok:()=>campCleared(0)>=20}
+];
+function checkAch(){
+  ACH.forEach(a=>{if(!SAVE.ach[a.id]&&a.ok()){SAVE.ach[a.id]=1;addCoins(a.r);toast('🏆 إنجاز جديد: '+a.name+' (+'+a.r+' 🪙)');}});
+}
+function claimLogin(){
+  const t=today();
+  if(SAVE.lastLogin!==t){SAVE.lastLogin=t;addCoins(15);store();setTimeout(()=>toast('🎁 هدية الدخول اليومية: +15 🪙'),600);}
+}
+
+/* ---------- صوت واهتزاز ---------- */
+let actx=null;
+function beep(fr,d,type,v){
+  if(!SAVE.opts.sound)return;
+  try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();o.type=type||'sine';o.frequency.value=fr;g.gain.value=v||.07;o.connect(g);g.connect(actx.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+d);o.stop(actx.currentTime+d);}catch(e){}
+}
+function vib(ms){if(SAVE.opts.vib&&navigator.vibrate){try{navigator.vibrate(ms);}catch(e){}}}
+function toggleOpt(k){SAVE.opts[k]=!SAVE.opts[k];store();renderMenu();}
+let toastT=0;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2800);}
+
+/* =========================================================
+   التنقل والواجهات
+   ========================================================= */
+let selTheme='home';
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));
+  if(id!=='game')stopRun();
+  if(id==='menu')renderMenu();
+  if(id==='shop')renderShop();
+  if(id==='profile')renderProfile();
+  if(id==='campaign')renderCampaign();
+}
+function renderMenu(){
+  const lv=plevel(SAVE.xp),cur=40*(lv-1)*(lv-1),nxt=40*lv*lv,pct=Math.max(0,Math.min(100,Math.round((SAVE.xp-cur)/(nxt-cur)*100)));
+  $('#profLine').innerHTML=`<b>المستوى ${lv}</b> &nbsp;•&nbsp; ⭐ ${totalStars()} &nbsp;•&nbsp; 🔥 يومي: ${SAVE.daily.streak}<div class="xpbar"><i style="width:${pct}%"></i></div>`;
+  $('#coinsM').textContent='🪙 '+SAVE.coins;
+  $('#themeChips').innerHTML=THEME_KEYS.map(k=>`<span class="chip ${k===selTheme?'on':''}" onclick="selTheme='${k}';renderMenu()">${THEMES[k].name}</span>`).join('');
+  $('#bSnd').textContent=SAVE.opts.sound?'🔊':'🔇';$('#bVib').textContent=SAVE.opts.vib?'📳':'📴';
+  $('#dailyBtn').textContent=SAVE.daily.last===today()?'📅 اليومي ✔':'📅 اليومي (+🪙)';
+  const b=[];if(SAVE.best.run)b.push('أفضل اختبار سريع: '+SAVE.best.run);if(SAVE.best.endless)b.push('أفضل لانهائي: '+SAVE.best.endless);
+  $('#bestLine').textContent=b.join(' • ');
+}
+function stopRun(){if(G){cancelAnimationFrame(raf);clearFx();G.running=false;}resetFx();const st=$('#stage');if(st)st.classList.remove('frozen');}
+function clearFx(){if(G&&G.fx){G.fx.forEach(clearTimeout);G.fx=[];}if(G)clearTimeout(G.timeout);}
+function applyCosm(el){el.className='f-'+SAVE.cosm.active;}
+
+/* ---------- الحملة ---------- */
+let mapWorld=0;
+const worldUnlocked=wi=>wi===0||campCleared(wi-1)>=10;
+function openCampaign(){show('campaign');}
+function selWorld(i){mapWorld=i;renderCampaign();}
+function renderCampaign(){
+  mapWorld=Math.min(mapWorld,WORLDS.length-1);
+  $('#worldChips').innerHTML=WORLDS.map((w,i)=>`<span class="chip ${i===mapWorld?'on':''}" onclick="selWorld(${i})">${worldUnlocked(i)?'':'🔒 '}${THEMES[w.theme].name}</span>`).join('');
+  const w=WORLDS[mapWorld],ok=worldUnlocked(mapWorld),arr=SAVE.camp[w.id]||[];
+  $('#worldInfo').textContent=ok?`${w.name} • ⭐ ${campStars(mapWorld)}/60 • 👾 زعيم كل 5 مراحل`:'🔒 أنهِ 10 مراحل من الموسم السابق لفتح هذا الموسم';
+  let h='';
+  for(let i=0;i<20;i++){
+    const st=arr[i]||0,unl=ok&&(i===0||(arr[i-1]||0)>0),boss=(i+1)%5===0;
+    h+=`<button class="lv ${boss?'boss':''} ${unl?'':'lock'}" ${unl?`onclick="startLevel(${mapWorld},${i})"`:'disabled'}>${unl?(boss?'👾':(i+1)):'🔒'}<small>${st?'★'.repeat(st)+'☆'.repeat(3-st):''}</small></button>`;
+  }
+  $('#lvGrid').innerHTML=h;
+}
+function startLevel(wi,i){
+  startRun({mode:'level',key:WORLDS[wi].id,gen:()=>campaignLevel(wi,i),theme:WORLDS[wi].theme,world:wi,lvl:i});
+}
+
+/* ---------- المتجر ---------- */
+const SHOP=[
+  {id:'time',kind:'inv',name:'⏱ +3 ثوانٍ',desc:'يضيف 3 ثوانٍ للمرحلة الحالية',price:30},
+  {id:'hint',kind:'inv',name:'🔍 تلميح',desc:'يحدد منطقة الثغرة (نجمتان كحد أقصى للمرحلة)',price:25},
+  {id:'freeze',kind:'inv',name:'❄️ تجميد',desc:'يوقف الوقت 3 ثوانٍ',price:40},
+  {id:'none',kind:'cosm',name:'📹 كاميرا عادية',desc:'المظهر الافتراضي',price:0},
+  {id:'night',kind:'cosm',name:'🌙 رؤية ليلية',desc:'فلتر كاميرا مراقبة خضراء',price:150},
+  {id:'vhs',kind:'cosm',name:'📼 VHS',desc:'فلتر شريط قديم',price:250},
+  {id:'neon',kind:'cosm',name:'🌈 نيون',desc:'ألوان صاخبة',price:350}
+];
+function renderShop(){
+  $('#coinsS').textContent='🪙 '+SAVE.coins;
+  $('#shopList').innerHTML=SHOP.map(it=>{
+    let right;
+    if(it.kind==='inv')right=`<button class="btn sm" onclick="buy('${it.id}')">🪙 ${it.price}</button><small>لديك ${SAVE.inv[it.id]}</small>`;
+    else if(SAVE.cosm.active===it.id)right='<b style="color:var(--acc)">مُفعّل</b>';
+    else if(SAVE.cosm.owned.includes(it.id))right=`<button class="btn sm ghost" onclick="buy('${it.id}')">تفعيل</button>`;
+    else right=`<button class="btn sm" onclick="buy('${it.id}')">🪙 ${it.price}</button>`;
+    return `<div><span><b>${it.name}</b><small>${it.desc}</small></span><span style="text-align:center">${right}</span></div>`;
+  }).join('');
+}
+function buy(id){
+  const it=SHOP.find(x=>x.id===id);if(!it)return;
+  if(it.kind==='cosm'&&SAVE.cosm.owned.includes(id)){SAVE.cosm.active=id;store();renderShop();return;}
+  if(SAVE.coins<it.price){toast('عملاتك لا تكفي 🪙');return;}
+  SAVE.coins-=it.price;
+  if(it.kind==='inv')SAVE.inv[id]++;else{SAVE.cosm.owned.push(id);SAVE.cosm.active=id;}
+  store();renderShop();beep(700,.1);toast('تمت العملية ✔');
+}
+
+/* ---------- الملف الشخصي ---------- */
+function renderProfile(){
+  const lv=plevel(SAVE.xp),S=SAVE.stats;
+  $('#profCard').innerHTML=`<div class="lead" style="color:var(--ink)">المستوى <b>${lv}</b> • خبرة ${SAVE.xp} • 🪙 ${SAVE.coins}</div><div class="lead">ثغرات مكتشفة: ${S.wins} • بلا أخطاء: ${S.perfect} • زعماء: ${S.bosses}<br>أسرع اكتشاف: ${S.fastest<99?S.fastest.toFixed(1)+' ث':'—'} • أطول سلسلة: ${S.maxCombo} • نجوم: ${totalStars()}</div>`;
+  $('#achList').innerHTML=ACH.map(a=>`<div class="ach ${SAVE.ach[a.id]?'on':'off'}"><span><b>${SAVE.ach[a.id]?'🏆':'🔒'} ${a.name}</b><small>${a.desc}</small></span><span class="coins">+${a.r} 🪙</span></div>`).join('');
+}
+
+/* =========================================================
+   محرك اللعب
+   ========================================================= */
+let G=null,raf=0;
+function startMain(){startRun({mode:'run',key:'run',levels:MAIN_LEVELS,theme:selTheme});}
+function startEndless(){const th0=Math.floor(Math.random()*4);startRun({mode:'endless',key:'endless',gen:k=>endlessLevel(k,th0),theme:selTheme,lives:3});}
+function startDaily(){const p=dailyPack();startRun({mode:'daily',key:'daily',levels:p.levels,theme:p.theme});}
+function startRun(cfg){
+  G={mode:cfg.mode,key:cfg.key,levels:cfg.levels||null,gen:cfg.gen||null,theme:cfg.theme,i:0,score:0,times:[],running:false,cfg,lives:cfg.lives||0,combo:0,attempt:0,world:cfg.world,lvl:cfg.lvl,fx:[],L:null,Lidx:-1,revived:0,mistakes:0,freezeUntil:0};
+  show('game');$('#score').textContent='0';loadLevel();
+}
+function replay(){startRun(G.cfg);}
+function retry(){if(G.mode!=='duel')G.attempt++;loadLevel();}
+function headTitle(){
+  const L=G.L;
+  if(G.mode==='run')return `المرحلة ${G.i+1}/${G.levels.length}: ${L.title}`;
+  return L.title;
+}
+function renderPU(){$('#pTime').textContent=SAVE.inv.time;$('#pHint').textContent=SAVE.inv.hint;$('#pFreeze').textContent=SAVE.inv.freeze;}
+function comboMult(){return 1+Math.max(0,Math.min(G.combo,8)-1)*.25;}
+function updateStat(){
+  let s='';
+  if(G.combo>=2)s+=`🔥 x${comboMult().toFixed(2).replace(/\.?0+$/,'')} `;
+  if(G.mode==='endless')s+='❤'.repeat(G.lives)+'🖤'.repeat(Math.max(0,3-G.lives))+' ';
+  s+='🪙 '+SAVE.coins;
+  $('#stat').textContent=s;
+}
+function loadLevel(){
+  cancelAnimationFrame(raf);clearFx();resetFx();$('#stage').classList.remove('frozen');
+  $('#panel').style.display='none';$('#hint').style.display='block';$('#pus').style.display='flex';
+  if(G.Lidx!==G.i){G.L=G.gen?G.gen(G.i):G.levels[G.i];G.Lidx=G.i;G.attempt=0;}
+  const L=G.L,T=THEMES[L.theme||G.theme],seed=L.seed!=null?((L.seed+G.attempt*7919)|0):((Math.random()*1e9)|0);
+  G.cur={L,T,seed};G.B=buildScene(L,T,mulberry32(seed));
+  G.targets=G.B.targets.map(t=>({...t,found:false,active:!G.B.flicker}));
+  G.running=false;G.mistakes=0;G.usedHint=false;G.freezeUntil=0;
+  $('#lvlTitle').textContent=headTitle();$('#cam').textContent=(G.i%9)+1;
+  $('#bar').style.width='100%';$('#bar').style.background='var(--acc)';$('#timeTxt').textContent=L.time.toFixed(1);
+  renderPU();updateStat();
+  if(G.B.showInner){
+    renderScene(G.B.showInner,G.B.wobble);
+    $('#hint').textContent='احفظ المشهد جيدًا... سيتغيّر خلال لحظات';
+    G.timeout=setTimeout(()=>{renderScene(G.B.inner,G.B.wobble);$('#hint').textContent=G.B.hint;beginTimer();},L.show||3500);
+  }else{renderScene(G.B.inner,G.B.wobble);$('#hint').textContent=G.B.hint;beginTimer();}
+}
+function renderScene(inner,wob){
+  const box=$('#sceneBox');applyCosm(box);
+  box.innerHTML=compose(G.cur.T,inner,{wobble:wob});
+  box.querySelector('svg').addEventListener('pointerdown',onTap);
+}
+function beginTimer(){
+  G.total=G.cur.L.time*1000;G.deadline=performance.now()+G.total;G.lastTick=performance.now();G.lastBeep=-1;G.running=true;
+  if(G.B.flicker){[.28,.62].forEach((fr,ix)=>G.fx.push(setTimeout(()=>doFlicker(),G.total*fr)));}
+  raf=requestAnimationFrame(tick);
+}
+function doFlicker(){
+  if(!G||!G.running||!G.B.flicker)return;
+  G.targets[0].active=true;
+  const r=G.B.flicker.rect,svg=$('#sceneBox svg');if(!svg)return;
+  const id='fl'+Math.floor(Math.random()*1e6);
+  svg.querySelector('.marks').insertAdjacentHTML('beforeend',`<g id="${id}"><rect x="${f(r.x)}" y="${f(r.y)}" width="${f(r.w)}" height="${f(r.h)}" rx="8" fill="#ff3b5c" opacity="0"><animate attributeName="opacity" values="0;.8;0;.65;0" dur=".5s" fill="freeze"/></rect><rect x="${f(r.x+8)}" y="${f(r.y+4)}" width="${f(r.w)}" height="${f(r.h)}" rx="8" fill="#27e0a3" opacity="0"><animate attributeName="opacity" values="0;.5;0;.4;0" dur=".5s" fill="freeze"/></rect></g>`);
+  setTimeout(()=>{const e=document.getElementById(id);if(e)e.remove();},700);
+}
+function tick(){
+  if(!G||!G.running)return;
+  const now=performance.now();
+  if(now<G.freezeUntil)G.deadline+=now-G.lastTick;
+  G.lastTick=now;
+  const left=G.deadline-now;
+  if(left<=0){lose();return;}
+  const ratio=Math.min(1,left/G.total),bar=$('#bar');
+  bar.style.width=(ratio*100)+'%';bar.style.background=now<G.freezeUntil?'var(--ice)':ratio>.5?'var(--acc)':ratio>.25?'var(--warn)':'var(--bad)';
+  $('#timeTxt').textContent=(left/1000).toFixed(1);
+  $('#clk').textContent=new Date().toLocaleTimeString('en-GB');
+  if(now>=G.freezeUntil)glitchFx(ratio);
+  if(ratio<.25&&Math.floor(left/250)!==G.lastBeep){G.lastBeep=Math.floor(left/250);beep(220,.05,'square',.03);}
+  raf=requestAnimationFrame(tick);
+}
+function glitchFx(ratio){
+  const g=ratio<.6?(1-ratio/.6):0,st=$('#sceneBox');
+  if(g>0&&Math.random()<g*.35){
+    st.style.transform=`translateX(${((Math.random()-.5)*10*g).toFixed(1)}px)`;
+    const cos=SAVE.cosm.active==='none'?'':' ';
+    st.style.filter=`hue-rotate(${(Math.random()*80-40)|0}deg) saturate(${(1+g).toFixed(2)})`;
+    const b=$('#bars');
+    if(b.childElementCount<3){const d=document.createElement('div');d.style.top=(Math.random()*95)+'%';d.style.height=(2+Math.random()*7)+'%';b.appendChild(d);setTimeout(()=>d.remove(),90);}
+  }else{st.style.transform='';st.style.filter='';}
+}
+function resetFx(){const st=$('#sceneBox');if(st){st.style.transform='';st.style.filter='';}const b=$('#bars');if(b)b.innerHTML='';}
+function burst(svg,cx,cy){
+  let h=`<circle cx="${f(cx)}" cy="${f(cy)}" r="8" fill="none" stroke="#27e0a3" stroke-width="3"><animate attributeName="r" from="8" to="60" dur=".5s" fill="freeze"/><animate attributeName="opacity" from="1" to="0" dur=".5s" fill="freeze"/></circle>`;
+  for(let k=0;k<8;k++){const a=k/8*Math.PI*2;h+=`<circle cx="${f(cx)}" cy="${f(cy)}" r="3.5" fill="#ffc83d"><animate attributeName="cx" from="${f(cx)}" to="${f(cx+Math.cos(a)*55)}" dur=".5s" fill="freeze"/><animate attributeName="cy" from="${f(cy)}" to="${f(cy+Math.sin(a)*55)}" dur=".5s" fill="freeze"/><animate attributeName="opacity" from="1" to="0" dur=".5s" fill="freeze"/></circle>`;}
+  svg.querySelector('.marks').insertAdjacentHTML('beforeend',h);
+}
+function onTap(e){
+  if(!G||!G.running)return;
+  e.preventDefault();
+  const svg=$('#sceneBox svg'),p=svgPoint(svg,e),hit=G.targets.find(t=>!t.found&&t.active&&inRect(p,t));
+  if(hit){
+    hit.found=true;beep(660,.12,'sine',.09);vib(25);
+    svg.querySelector('.marks').insertAdjacentHTML('beforeend',`<rect x="${f(hit.x)}" y="${f(hit.y)}" width="${f(hit.w)}" height="${f(hit.h)}" rx="10" fill="none" stroke="#27e0a3" stroke-width="4"/>`);
+    burst(svg,hit.x+hit.w/2,hit.y+hit.h/2);
+    if(G.targets.every(t=>t.found))win();
+  }else{
+    G.deadline-=1000;G.mistakes++;G.combo=0;updateStat();beep(140,.2,'sawtooth',.08);vib(80);
+    const fl=$('#flash'),pen=$('#pen');fl.classList.remove('on');pen.classList.remove('on');void fl.offsetWidth;fl.classList.add('on');pen.classList.add('on');
+  }
+}
+/* ---------- الأدوات ---------- */
+function usePU(k){
+  if(!G||!G.running)return;
+  if(SAVE.inv[k]<=0){toast('نفد رصيدك — اشترِ من المتجر 🛒');return;}
+  const now=performance.now();
+  if(k==='time'){G.deadline+=3000;G.total+=3000;}
+  else if(k==='freeze'){
+    if(now<G.freezeUntil)return;
+    G.freezeUntil=now+3000;$('#stage').classList.add('frozen');setTimeout(()=>$('#stage').classList.remove('frozen'),3000);
+  }else if(k==='hint'){
+    const t=G.targets.find(x=>!x.found);if(!t)return;
+    if(!t.active){toast('الوميض لم يبدأ بعد... راقب!');return;}
+    const cx=t.x+t.w/2+(Math.random()-.5)*50,cy=t.y+t.h/2+(Math.random()-.5)*50;
+    $('#sceneBox svg').querySelector('.marks').insertAdjacentHTML('beforeend',`<circle cx="${f(cx)}" cy="${f(cy)}" r="${Math.max(70,Math.max(t.w,t.h)*.7)}" fill="none" stroke="#ffc83d" stroke-width="3" stroke-dasharray="6 6"><animate attributeName="opacity" values="1;.2;1" dur=".8s" repeatCount="indefinite"/></circle>`);
+    G.usedHint=true;
+  }
+  SAVE.inv[k]--;store();renderPU();beep(900,.1,'triangle',.08);
+}
+/* ---------- فوز وخسارة ---------- */
+function typeKey(L){return L.type==='boss'?'shadow':L.type;}
+function win(){
+  G.running=false;cancelAnimationFrame(raf);clearFx();resetFx();$('#stage').classList.remove('frozen');
+  const left=Math.max(0,G.deadline-performance.now()),ratio=Math.min(1,left/G.total),taken=(G.total-left)/1000;
+  let stars=ratio>.5?3:ratio>.25?2:1;
+  if(G.mistakes>0)stars=Math.max(1,stars-1);
+  if(G.usedHint)stars=Math.min(stars,2);
+  const perfect=G.mistakes===0,boss=!!G.L.boss;
+  if(perfect)G.combo++;
+  const mult=comboMult(),pts=Math.round((left/10+stars*100+(boss?200:0))*mult),coins=3+stars*2+(boss?15:0)+(perfect?2:0);
+  G.score+=pts;G.times.push({t:taken,stars,type:G.L.type});
+  addCoins(coins);addXP(Math.round(pts/4));
+  const S=SAVE.stats;S.wins++;if(perfect)S.perfect++;S.fastest=Math.min(S.fastest,taken);S.types[typeKey(G.L)]=1;S.maxCombo=Math.max(S.maxCombo,G.combo);if(boss)S.bosses++;if(stars===3)S.stars3++;
+  if(G.mode==='level'){const a=SAVE.camp[G.key]=SAVE.camp[G.key]||[];a[G.lvl]=Math.max(a[G.lvl]||0,stars);}
+  if(G.mode==='endless'){S.endlessBest=Math.max(S.endlessBest,G.times.length);}
+  checkAch();store();
+  $('#score').textContent=G.score;updateStat();
+  beep(880,.15,'sine',.1);setTimeout(()=>beep(1175,.2,'sine',.1),120);vib([30,40,30]);
+  showPanel(`<h2 style="color:var(--acc)">${boss?'👾 هزمت الزعيم!':'✔ اكتشفت الثغرة!'}</h2><div class="stars">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div><p>${pick(WIN_MSGS)}<br>+${pts} نقطة • +${coins} 🪙${perfect&&G.combo>=2?' • 🔥 سلسلة '+G.combo:''}</p>${winButtons()}`);
+}
+function winButtons(){
+  const last=G.levels?G.i===G.levels.length-1:false;
+  if(G.mode==='duel'){
+    return `<button class="btn" onclick="shareCard('حللت ثغرة صديقي في ${((G.total-Math.max(0,G.deadline-performance.now()))/1000).toFixed(1)} ثانية! هل تقدر تتفوق عليّ؟')">📤 شارك نتيجتي</button><button class="btn ghost" onclick="openDuelMake()">⚔️ صمّم ثغرتك أنت</button><button class="btn ghost" onclick="show('menu')">القائمة</button>`;
+  }
+  if(G.mode==='level'){
+    const nx=G.lvl+1;
+    return (nx<20?`<button class="btn" onclick="startLevel(${G.world},${nx})">المرحلة التالية ◀</button>`:'')+`<button class="btn ghost" onclick="retry()">🔄 أعد للمزيد من النجوم</button><button class="btn ghost" onclick="openCampaign()">🗺 الخريطة</button>`;
+  }
+  if(G.mode==='endless')return `<button class="btn" onclick="nextLevel()">التالي ◀</button>`;
+  return last?`<button class="btn" onclick="showFinish()">عرض النتيجة</button>`:`<button class="btn" onclick="nextLevel()">المرحلة التالية ◀</button>`;
+}
+function lose(){
+  G.running=false;cancelAnimationFrame(raf);clearFx();resetFx();G.combo=0;updateStat();beep(110,.5,'sawtooth',.1);vib(200);
+  const svg=$('#sceneBox svg'),m=svg.querySelector('.marks');
+  G.targets.filter(t=>!t.found).forEach(t=>m.insertAdjacentHTML('beforeend',`<rect x="${f(t.x)}" y="${f(t.y)}" width="${f(t.w)}" height="${f(t.h)}" rx="10" fill="none" stroke="#ff3b5c" stroke-width="4" stroke-dasharray="8 5"/>`));
+  $('#timeTxt').textContent='0.0';$('#bar').style.width='0%';
+  if(G.mode==='endless'){
+    G.lives--;updateStat();
+    if(G.lives>0){showPanel(`<h2 style="color:var(--bad)">فقدت حياة 💔</h2><p>${pick(FAIL_MSGS)}<br>تبقّى لك ${G.lives}</p><button class="btn" onclick="nextLevel()">استمر ◀</button>`);return;}
+    const can=SAVE.coins>=50&&G.revived<2;
+    showPanel(`<h2 style="color:var(--bad)">انتهت حياتك 💀</h2><p>${pick(FAIL_MSGS)}</p>${can?`<button class="btn" onclick="revive()">❤ أكمل بحياة إضافية (50 🪙)</button>`:''}<button class="btn ${can?'ghost':''}" onclick="showFinish()">عرض النتيجة</button>`);
+    return;
+  }
+  showPanel(`<h2 style="color:var(--bad)">انتهى الوقت</h2><p>${pick(FAIL_MSGS)}</p><button class="btn" onclick="retry()">🔄 حاول مرة أخرى</button>${G.mode==='run'?`<button class="btn ghost" onclick="showFinish()">إنهاء الجولة</button>`:''}${G.mode==='level'?`<button class="btn ghost" onclick="openCampaign()">🗺 الخريطة</button>`:''}<button class="btn ghost" onclick="show('menu')">القائمة</button>`);
+}
+function revive(){if(SAVE.coins<50)return;SAVE.coins-=50;G.revived++;G.lives=1;store();nextLevel();}
+function showPanel(html){$('#hint').style.display='none';$('#pus').style.display='none';const p=$('#panel');p.innerHTML=html;p.style.display='flex';}
+function nextLevel(){G.i++;loadLevel();}
+
+/* ---------- شاشة النتيجة ---------- */
+function showFinish(){
+  const bestKey=G.mode==='endless'?'endless':G.mode==='run'?'run':null;
+  let title='اكتملت الاختبارات 🎉',sub='';
+  if(bestKey){const prev=SAVE.best[bestKey]||0;if(G.score>prev){SAVE.best[bestKey]=G.score;sub='🎖 رقم قياسي جديد!';}}
+  if(G.mode==='endless'){title='انتهت الرحلة 💀';sub=`أنجزت ${G.times.length} مرحلة ${sub}`;}
+  if(G.mode==='daily'){
+    if(G.times.length>=5){
+      const d=SAVE.daily,t=today();
+      if(d.last!==t){
+        const y=new Date(Date.now()-864e5).toLocaleDateString('en-CA');
+        d.streak=(d.last===y)?d.streak+1:1;d.last=t;
+        const c=50+Math.min(d.streak,7)*5;addCoins(c);
+        if(d.streak%3===0){SAVE.inv.hint++;SAVE.inv.freeze++;}
+        sub=`مكافأة اليوم: +${c} 🪙 • سلسلة ${d.streak} يوم 🔥${d.streak%3===0?' + أدوات هدية':''}`;
+      }else sub='سبق أن حصلت على مكافأة اليوم';
+    }else sub='أنهِ المراحل الخمس لتحصل على المكافأة';
+    title='التحدي اليومي 📅';
+  }
+  checkAch();store();
+  $('#finTitle').textContent=title;$('#finScore').textContent=G.score;$('#finSub').textContent=sub;
+  $('#finList').innerHTML=G.times.map((r,i)=>`<div><span>${i+1}. ${TITLES[r.type]||''}</span><span>${r.t.toFixed(1)} ث &nbsp; ${'★'.repeat(r.stars)}</span></div>`).join('')||'<div><span>لم تُنهِ أي مرحلة</span><span>—</span></div>';
+  show('finish');
+}
+
+/* ---------- كارت التحدي (مشاركة) ---------- */
+function renderCard(){
+  return new Promise((res,rej)=>{
+    const svg=compose(G.cur.T,G.B.inner,{size:[400,480]}),img=new Image();
+    img.onload=()=>{
+      const c=document.createElement('canvas');c.width=1080;c.height=1500;const x=c.getContext('2d');
+      const g=x.createLinearGradient(0,0,0,1500);g.addColorStop(0,'#10141c');g.addColorStop(1,'#05060a');x.fillStyle=g;x.fillRect(0,0,1080,1500);
+      x.direction='rtl';x.textAlign='center';
+      x.fillStyle='#e8ecf4';x.font='900 84px Tahoma, Arial, sans-serif';x.fillText('ثغرة في الواقع',540,120);
+      x.fillStyle='#8b93a7';x.font='700 30px Arial';x.fillText('REALITY GLITCH',540,170);
+      x.drawImage(img,90,210,900,1080);
+      x.fillStyle='rgba(0,0,0,.18)';for(let y=210;y<1290;y+=4)x.fillRect(90,y,900,2);
+      x.strokeStyle='#27e0a3';x.lineWidth=6;x.strokeRect(90,210,900,1080);
+      x.fillStyle='#e8ecf4';x.font='700 52px Tahoma, Arial, sans-serif';x.fillText('هل اكتشفت الخطأ قبل أن يخدعك عقلك؟',540,1370);
+      x.fillStyle='#27e0a3';x.font='900 64px Tahoma, Arial, sans-serif';x.fillText('أتحداك في 5 ثوانٍ!',540,1450);
+      c.toBlob(b=>b?res(b):rej(new Error('blob')),'image/png');
+    };
+    img.onerror=()=>rej(new Error('img'));
+    img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+  });
+}
+async function shareCard(extra){
+  if(!G||!G.B){toast('العب مرحلة أولًا');return;}
+  const url=location.href.split('#')[0],text=(typeof extra==='string'&&extra)?extra:'هل اكتشفت الخطأ قبل أن يخدعك عقلك؟ أتحداك في 5 ثوانٍ!';
+  let blob;try{blob=await renderCard();}catch(e){toast('تعذّر إنشاء الصورة');return;}
+  const done=()=>{SAVE.stats.shares++;checkAch();store();};
+  try{
+    const file=new File([blob],'reality-glitch.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text:text+'\n'+url,title:'ثغرة في الواقع'});done();return;}
+  }catch(e){if(e&&e.name==='AbortError')return;}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='reality-glitch.png';document.body.appendChild(a);a.click();a.remove();
+  try{await navigator.clipboard.writeText(text+'\n'+url);toast('تم حفظ الصورة ونسخ نص التحدي');}catch(e){toast('تم حفظ الصورة');}
+  done();
+}
+
+/* ---------- التحدي الثنائي 1v1 ---------- */
+let D=null,DUEL=null;
+const enc=o=>btoa(JSON.stringify(o)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+function dec(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return JSON.parse(atob(s));}
+function openDuelMake(){D={t:selTheme,s:(Math.random()*1e9)|0,i:null};show('duelMake');drawDuel();}
+function rerollDuel(){D.s=(Math.random()*1e9)|0;D.i=null;drawDuel();}
+function drawDuel(){
+  const T=THEMES[D.t],B=buildScene({type:'shadow',n:5,flipIdx:D.i},T,mulberry32(D.s));D.B=B;
+  const box=$('#sceneBoxD');applyCosm(box);box.innerHTML=compose(T,B.inner,{});
+  box.querySelector('svg').addEventListener('pointerdown',onDuelTap);
+  $('#duelLink').disabled=D.i==null;
+}
+function onDuelTap(e){
+  const p=svgPoint($('#sceneBoxD svg'),e);
+  const i=D.B.items.findIndex(it=>p.x>=it.x-it.w/2-8&&p.x<=it.x+it.w/2+8&&p.y>=it.y-it.h-8&&p.y<=it.y+10);
+  if(i>=0){D.i=i;drawDuel();beep(520,.08);}
+}
+async function shareDuel(){
+  if(D.i==null)return;
+  const url=location.href.split('#')[0]+'#duel='+enc({t:D.t,s:D.s,i:D.i}),text='صمّمت لك ثغرة! هل تكتشفها خلال 6 ثوانٍ؟';
+  try{if(navigator.share){await navigator.share({text,url,title:'ثغرة في الواقع'});return;}}catch(e){if(e&&e.name==='AbortError')return;}
+  try{await navigator.clipboard.writeText(text+'\n'+url);toast('تم نسخ رابط التحدي');}catch(e){window.prompt('انسخ الرابط:',url);}
+}
+function parseDuel(){
+  if(!location.hash.startsWith('#duel='))return null;
+  try{const o=dec(location.hash.slice(6));
+    if(THEMES[o.t]&&Number.isFinite(o.s)&&Number.isInteger(o.i)&&o.i>=0&&o.i<5)return o;}catch(e){}
+  return null;
+}
+function startDuel(){
+  const o=DUEL;if(!o)return;
+  startRun({mode:'duel',key:'duel',theme:o.t,levels:[{title:'تحدّي صديق',time:6,type:'shadow',n:5,flipIdx:o.i,seed:o.s}]});
+}
+function checkHash(){DUEL=parseDuel();if(DUEL)show('duelIntro');}
+window.addEventListener('hashchange',checkHash);
+
+/* ---------- LiveOps: مواسم من ملف خارجي (اختياري) + تثبيت كتطبيق ---------- */
+if(/^https?:/.test(location.protocol)){
+  fetch('seasons.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{
+    if(Array.isArray(j)&&j.length&&j.every(w=>w&&w.id&&w.name&&THEMES[w.theme])){WORLDS=j.map(w=>({id:String(w.id),name:String(w.name),theme:w.theme}));}
+  }).catch(()=>{});
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+claimLogin();
+renderMenu();
+if(!SAVE.seenHow){SAVE.seenHow=true;store();show('how');}
+checkHash();
+</script>
+</body>
+</html>

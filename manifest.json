@@ -1,0 +1,16 @@
+{
+  "name": "ثغرة في الواقع",
+  "short_name": "Reality Glitch",
+  "description": "لعبة ألغاز بصرية ونفسية سريعة: اكتشف الثغرة قبل أن يخدعك عقلك",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0d12",
+  "theme_color": "#0b0d12",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
